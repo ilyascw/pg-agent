@@ -7,9 +7,20 @@ declare
     v_response public.http_response;
 begin
     -- curl options are per session, so set both: the connect timeout defaults to 1 second.
-    perform public.http_set_curlopt('CURLOPT_CONNECTTIMEOUT', '10');
+    -- Some public APIs drop a connection now and then and answer the next one at once,
+    -- so a short connect timeout with retries beats one long wait.
+    perform public.http_set_curlopt('CURLOPT_CONNECTTIMEOUT', '3');
     perform public.http_set_curlopt('CURLOPT_TIMEOUT', '30');
-    v_response := public.http_get(p_url);
+    for v_attempt in 1..3 loop
+        begin
+            v_response := public.http_get(p_url);
+            exit;
+        exception when others then
+            if v_attempt = 3 then
+                raise;
+            end if;
+        end;
+    end loop;
     if v_response.status <> 200 then
         raise exception 'HTTP % from %', v_response.status, p_url;
     end if;
