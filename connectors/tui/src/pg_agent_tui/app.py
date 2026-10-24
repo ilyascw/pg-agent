@@ -9,6 +9,7 @@ from typing import ClassVar
 from uuid import UUID
 
 import psycopg
+from pg_agent import AgentClient, AgentInfo, Event
 from textual.app import App, ComposeResult
 from textual.binding import BindingType
 from textual.containers import VerticalScroll
@@ -16,10 +17,9 @@ from textual.suggester import SuggestFromList
 from textual.widget import Widget
 from textual.widgets import Input, Markdown, Static
 
-from pg_agent import AgentClient, AgentInfo, Event
-
 from .commands import COMMANDS, describe, matching
-from .render import Line, event_lines, prompt_tokens
+from .render import Line, ToolCall, ToolResult, event_items, prompt_tokens
+from .tool_view import ToolView
 
 HELP = describe() + "\n\n→ дописывает подсказанную команду."
 
@@ -29,8 +29,7 @@ class AgentApp(App[None]):
     #log { height: 1fr; padding: 0 1; }
     #log > * { margin: 1 0 0 0; }
     .user { color: $accent; text-style: bold; }
-    .call { color: $text-muted; margin: 0; }
-    .result { color: $success; margin: 0; }
+    .tool { margin: 0; }
     .error { color: $error; margin: 0; }
     .info { color: $text-muted; }
     #hints { display: none; padding: 0 1; color: $text-muted; background: $boost; }
@@ -52,6 +51,7 @@ class AgentApp(App[None]):
         self._last_event = 0
         self._tokens: int | None = None
         self._busy = False
+        self._calls: dict[str, ToolView] = {}
 
     def compose(self) -> ComposeResult:
         yield VerticalScroll(id="log")
@@ -145,6 +145,7 @@ class AgentApp(App[None]):
         self._stream = None
         self._last_event = 0
         self._tokens = None
+        self._calls.clear()
         await self.query_one("#log").remove_children()
         self._render_status()
 
@@ -169,8 +170,21 @@ class AgentApp(App[None]):
             return
         self._last_event = event.id
         self._tokens = prompt_tokens(event) or self._tokens
-        for line in event_lines(event):
-            await self._mount(line)
+        for item in event_items(event):
+            match item:
+                case ToolCall():
+                    view = ToolView(item)
+                    self._calls[item.id] = view
+                    await self._mount_widget(view)
+                case ToolResult():
+                    if view := self._calls.pop(item.call_id, None):
+                        view.finish(item)
+                    else:
+                        view = ToolView(ToolCall(item.call_id, item.name, ""))
+                        await self._mount_widget(view)
+                        view.finish(item)
+                case Line():
+                    await self._mount(item)
         self._render_status()
 
     async def _mount(self, line: Line) -> None:
@@ -179,6 +193,9 @@ class AgentApp(App[None]):
             if line.kind == "answer"
             else Static(_prefix(line) + line.text, markup=False, classes=line.kind)
         )
+        await self._mount_widget(widget)
+
+    async def _mount_widget(self, widget: Widget) -> None:
         log = self.query_one("#log", VerticalScroll)
         await log.mount(widget)
         log.scroll_end(animate=False)
@@ -205,4 +222,4 @@ class AgentApp(App[None]):
 
 
 def _prefix(line: Line) -> str:
-    return {"user": "› ", "call": "→ ", "result": "← ", "error": "✗ "}.get(line.kind, "")
+    return {"user": "› ", "error": "✗ "}.get(line.kind, "")

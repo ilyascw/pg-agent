@@ -1,8 +1,8 @@
 import asyncio
 
+from pg_agent import AgentClient
 from textual.widgets import Input, Markdown, Static
 
-from pg_agent import AgentClient
 from pg_agent_tui.app import AgentApp
 
 from .conftest import DSN
@@ -22,7 +22,9 @@ async def test_chat_turn_renders_calls_and_answer(client: AgentClient) -> None:
         await wait_for(lambda: app.query(Markdown))
 
         lines = [str(w.render()) for w in app.query("#log > Static")]
-        assert lines == ["› say ping", '→ echo(text="ping")', "← echo: echo: ping"]
+        assert lines == ["› say ping"]
+        tool = [str(w.render()) for w in app.query("ToolView > Static")]
+        assert tool == ['✓ echo  text="ping"', "10 Б"]
         assert app.query_one(Markdown).source == "pong"
         assert "сессия" in str(app.query_one("#status", Static).render())
 

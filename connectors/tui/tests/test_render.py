@@ -1,7 +1,8 @@
 from uuid import uuid4
 
 from pg_agent import Event
-from pg_agent_tui.render import Line, event_lines, preview, prompt_tokens
+
+from pg_agent_tui.render import Line, ToolCall, ToolResult, event_items, preview, prompt_tokens
 
 
 def event(kind: str, **payload: object) -> Event:
@@ -9,7 +10,7 @@ def event(kind: str, **payload: object) -> Event:
 
 
 def test_model_text_comes_before_its_calls() -> None:
-    lines = event_lines(
+    lines = event_items(
         event(
             "model",
             text="Сейчас посмотрю",
@@ -18,16 +19,23 @@ def test_model_text_comes_before_its_calls() -> None:
     )
     assert lines == [
         Line("answer", "Сейчас посмотрю"),
-        Line("call", 'get_weather(city="Казань")'),
+        ToolCall("c", "get_weather", 'city="Казань"'),
     ]
 
 
 def test_tool_errors_are_marked() -> None:
-    lines = event_lines(event("tool_result", name="fail", content="boom", is_error=True))
-    assert lines == [Line("error", "fail: boom")]
+    lines = event_items(
+        event("tool_result", call_id="c", name="fail", content="boom\n", is_error=True)
+    )
+    assert lines == [ToolResult("c", "fail", False, "boom")]
 
 
-def test_long_results_are_truncated() -> None:
+def test_results_show_only_name_and_size() -> None:
+    lines = event_items(event("tool_result", call_id="c", name="search", content='{"ok": true}'))
+    assert lines == [ToolResult("c", "search", True, "12 Б")]
+
+
+def test_long_lines_are_truncated() -> None:
     assert preview("x" * 10, limit=5) == "xxxx…"
 
 

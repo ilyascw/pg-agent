@@ -1,4 +1,4 @@
-"""Turns core events into display lines; no Textual here, so it is easy to test."""
+"""Turns core events into display items; no Textual here, so it is easy to test."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from typing import Any, Literal
 
 from pg_agent import Event
 
-RESULT_PREVIEW = 300
+PREVIEW = 100
 
-LineKind = Literal["user", "answer", "call", "result", "error"]
+LineKind = Literal["user", "answer", "error"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,30 +19,64 @@ class Line:
     text: str
 
 
-def event_lines(event: Event) -> list[Line]:
+@dataclass(frozen=True, slots=True)
+class ToolCall:
+    id: str
+    name: str
+    arguments: str
+
+
+@dataclass(frozen=True, slots=True)
+class ToolResult:
+    call_id: str
+    name: str
+    ok: bool
+    # Response size on success, the error message otherwise.
+    summary: str
+
+
+Item = Line | ToolCall | ToolResult
+
+
+def event_items(event: Event) -> list[Item]:
     payload = event.payload
     if event.kind == "user":
         return [Line("user", payload.get("text") or "")]
     if event.kind == "model":
-        lines = [Line("answer", payload["text"])] if payload.get("text") else []
-        lines += [
-            Line("call", f"{call['name']}({format_arguments(call['arguments'])})")
+        items: list[Item] = [Line("answer", payload["text"])] if payload.get("text") else []
+        items += [
+            ToolCall(str(call.get("id")), call["name"], format_arguments(call["arguments"]))
             for call in payload.get("tool_calls") or []
         ]
-        return lines
+        return items
     if event.kind == "tool_result":
-        kind: LineKind = "error" if payload.get("is_error") else "result"
-        return [Line(kind, f"{payload.get('name')}: {preview(payload.get('content') or '')}")]
+        content = payload.get("content") or ""
+        ok = not payload.get("is_error")
+        return [
+            ToolResult(
+                str(payload.get("call_id")),
+                payload.get("name") or "",
+                ok,
+                size(content) if ok else preview(" ".join(content.split())),
+            )
+        ]
     return []
 
 
 def format_arguments(arguments: dict[str, Any]) -> str:
-    return ", ".join(
-        f"{name}={json.dumps(value, ensure_ascii=False)}" for name, value in arguments.items()
+    return preview(
+        "  ".join(
+            f"{name}={json.dumps(value, ensure_ascii=False)}" for name, value in arguments.items()
+        )
     )
 
 
-def preview(text: str, limit: int = RESULT_PREVIEW) -> str:
+def size(text: str) -> str:
+    length = len(text.encode())
+    return f"{length} Б" if length < 1024 else f"{length / 1024:.1f} КБ"
+
+
+def preview(text: str, limit: int = PREVIEW) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
