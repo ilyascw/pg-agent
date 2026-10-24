@@ -1,0 +1,22 @@
+services:
+  db:
+    build: docker
+    environment:
+      POSTGRES_USER: agent
+      POSTGRES_PASSWORD: agent
+      POSTGRES_DB: agent
+    ports:
+      - "5433:5432"
+    volumes:
+      - .:/work:ro
+      - pgdata:/var/lib/postgresql/data
+    working_dir: /work
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "agent"]
+      interval: 2s
+      retries: 30
+
+volumes:
+  pgdata:

@@ -1,0 +1,42 @@
+[project]
+name = "pg-agent-tui"
+version = "0.1.0"
+description = "Terminal UI connector for pg-agent"
+readme = "README.md"
+authors = [
+    { name = "Ilya Skvortsov", email = "mail.ilyascw@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "psycopg[binary]>=3.3.6",
+    "textual>=8.2.8",
+    "tzlocal>=5.4.5",
+]
+
+[project.scripts]
+pg-agent-tui = "pg_agent_tui:main"
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.2",
+]
+
+[tool.uv.build-backend]
+module-name = ["pg_agent", "pg_agent_tui"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# The UI text is Russian and uses typographic symbols on purpose.
+ignore = ["RUF001"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
