@@ -52,7 +52,8 @@ make tui               # чат в терминале
 запросы в формате OpenAI, поэтому между базой и моделью стоит прокси
 [gpt2giga](https://github.com/ai-forever/gpt2giga): он принимает Chat Completions и
 переводит их в вызовы GigaChat. Прокси запущен на хосте, база ходит к нему через
-`host.docker.internal`. С этими настройками в `.env` сняты скриншоты ниже:
+`host.docker.internal`. Путь `/v2` в адресе выбирает у прокси контракт GigaChat v2.
+С этими настройками в `.env` сняты скриншоты ниже:
 
 ```bash
 LLM_BASE_URL=http://host.docker.internal:8090/v2
