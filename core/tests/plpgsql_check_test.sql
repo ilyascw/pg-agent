@@ -19,7 +19,8 @@ select is_empty(
         where
             l.lanname = 'plpgsql'
             and n.nspname in (
-                'core', 'llm', 'llm_openai', 'llm_fake', 'tools', 'mcp', 'ctx', 'mw', 'runtime', 'personal'
+                'core', 'llm', 'llm_openai', 'llm_fake', 'tools', 'mcp', 'skills', 'ctx', 'mw', 'runtime',
+                'personal', 'analyst'
             )
             -- Plugin signatures are fixed, so a plugin may ignore some of its parameters.
             and c.message not like 'unused parameter%'

@@ -3,7 +3,7 @@
 
 create schema personal;
 
-comment on schema personal is 'Personal assistant: tasks, notes, skills and their tools.';
+comment on schema personal is 'Personal assistant: tasks, notes and their tools.';
 
 create table personal.task (
     id int generated always as identity primary key,
@@ -18,10 +18,4 @@ create table personal.note (
     text text not null,
     tags text[] not null default '{}',
     created_at timestamptz not null default now()
-);
-
-create table personal.skill (
-    name text primary key check (name ~ '^[a-z0-9]+(_[a-z0-9]+)*$'),
-    content text not null,
-    updated_at timestamptz not null default now()
 );

@@ -1,14 +1,12 @@
 -- Installs the personal assistant and the plugins it uses on top of the core.
 --
 -- psql variables: base_url, api_key, model, tool_examples_field (empty to skip).
--- Paths of prompt and skill files are relative to the repository root.
+-- Prompt paths are relative to the repository root; skills are read by the server from
+-- /work, where compose mounts the repository.
 \set ON_ERROR_STOP on
 
 \set prompt `cat apps/personal/prompts/assistant.md`
 \set stop_hint `cat apps/personal/prompts/tool_limit.md`
-\set skill_financial_model `cat apps/personal/skills/financial_model.md`
-\set skill_investor_call_prep `cat apps/personal/skills/investor_call_prep.md`
-\set skill_skill_authoring `cat apps/personal/skills/skill_authoring.md`
 
 begin;
 
@@ -16,12 +14,12 @@ begin;
 \ir ../../plugins/llm_openai/install.sql
 \ir ../../plugins/mcp/install.sql
 \ir ../../plugins/sessions/install.sql
+\ir ../../plugins/skills/install.sql
 
 \ir schema.sql
 \ir tools/basic.sql
 \ir tools/tasks.sql
 \ir tools/notes.sql
-\ir tools/skills.sql
 \ir tools/external.sql
 \ir agent.sql
 
@@ -41,9 +39,6 @@ values ('personal', 'openai', :'model', :'prompt');
 
 select personal.equip('personal', :'stop_hint');
 
-insert into personal.skill (name, content) values
-('financial_model', :'skill_financial_model'),
-('investor_call_prep', :'skill_investor_call_prep'),
-('skill_authoring', :'skill_skill_authoring');
+select skills.import('personal', '/work/apps/personal/skills');
 
 commit;

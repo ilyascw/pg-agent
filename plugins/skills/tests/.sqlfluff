@@ -1,0 +1,3 @@
+[sqlfluff]
+# pgTAP idiom: select * from finish()
+exclude_rules = references.keywords, ambiguous.column_count

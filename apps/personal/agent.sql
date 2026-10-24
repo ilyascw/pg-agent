@@ -103,7 +103,7 @@ insert into tools.tool (name, description, parameters, handler, examples) values
     'list_skills',
     'Показать доступные скиллы — методички для сложных задач.',
     default,
-    'personal.list_skills(jsonb, jsonb)',
+    'skills.list(jsonb, jsonb)',
     default
 ),
 (
@@ -114,7 +114,7 @@ insert into tools.tool (name, description, parameters, handler, examples) values
     $${"type": "object", "required": ["name"], "properties": {
         "name": {"type": "string", "description": "Имя скилла, например financial_model"}
     }}$$,
-    'personal.load_skill(jsonb, jsonb)',
+    'skills.load(jsonb, jsonb)',
     $$[
         {"request": "построй финмодель кофейни", "params": {"name": "financial_model"}},
         {"request": "посчитай юнит-экономику доставки", "params": {"name": "financial_model"}}
@@ -129,9 +129,13 @@ insert into tools.tool (name, description, parameters, handler, examples) values
         "name": {"type": "string", "description": "Имя латиницей через подчёркивание, например meeting_notes"},
         "content": {"type": "string", "description": "Готовый текст методички в Markdown"}
     }}$$,
-    'personal.save_skill(jsonb, jsonb)',
+    'skills.save(jsonb, jsonb)',
     default
 );
+
+-- Skill tools work with the personal library.
+update tools.tool set options = '{"library": "personal"}'
+where name in ('list_skills', 'load_skill', 'save_skill');
 
 -- Core session tools, scoped to this agent's streams by options.
 insert into tools.tool (name, description, parameters, handler, options) values
@@ -163,7 +167,10 @@ as $$
     insert into tools.agent_tool (agent, tool)
     select p_agent, t.name
     from tools.tool as t
-    where t.handler::text like 'personal.%' or t.options ->> 'agent' = p_agent;
+    where
+        t.handler::text like 'personal.%'
+        or t.options ->> 'agent' = p_agent
+        or t.options ->> 'library' = 'personal';
 
     insert into ctx.policy (agent, position, fn, options)
     values (p_agent, 1, 'ctx.last_turns(jsonb, jsonb)', '{"turns": 30}');

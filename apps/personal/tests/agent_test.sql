@@ -1,6 +1,6 @@
 begin;
 
-select plan(4);
+select plan(5);
 
 select is(
     (
@@ -20,9 +20,18 @@ select ok(
 );
 
 select matches(
-    personal.load_skill('{"name": "financial_model"}'),
+    skills.load('{"name": "financial_model"}', '{"library": "personal"}'),
     'calculate',
     'skills are seeded'
+);
+
+select is(
+    (
+        select count(*) from tools.agent_tool
+        where agent = 'personal' and tool in ('list_skills', 'load_skill', 'save_skill')
+    ),
+    3::bigint,
+    'skill tools are granted'
 );
 
 -- One full turn of the real agent definition with a scripted model.

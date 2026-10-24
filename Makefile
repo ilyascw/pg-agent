@@ -3,7 +3,7 @@ export
 
 SQLFLUFF := uvx sqlfluff==4.4.0
 PSQL := docker compose exec -T db psql -U agent -v ON_ERROR_STOP=1 -q
-SCHEMAS := telegram personal mcp runtime mw ctx tools llm_fake llm_openai llm core
+SCHEMAS := telegram analyst olist f1 personal skills mcp runtime mw ctx tools llm_fake llm_openai llm core
 APP_VARS = -v base_url="$$LLM_BASE_URL" -v api_key="$$LLM_API_KEY" -v model="$$LLM_MODEL" \
 	-v tool_examples_field="$$LLM_TOOL_EXAMPLES_FIELD"
 
