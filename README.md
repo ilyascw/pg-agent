@@ -1,5 +1,13 @@
 # pg-agent
 
+[![CI](https://github.com/ilyascw/pg-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ilyascw/pg-agent/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![PL/pgSQL](https://img.shields.io/badge/PL%2FpgSQL-336791?logo=postgresql&logoColor=white)
+![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-3776AB?logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-black)
+
 LLM-агент, который целиком живёт внутри Postgres. Цикл, инструменты, память и
 вызовы модели написаны на PL/pgSQL. Никакого Python-сервиса между базой и моделью нет.
 
