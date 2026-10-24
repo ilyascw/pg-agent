@@ -17,6 +17,11 @@ make analyst                      # скачать датасеты в data/ и 
 PG_AGENT_NAME=analyst make tui    # или make telegram с тем же PG_AGENT_NAME
 ```
 
+Вопрос по Olist в TUI: агент загружает скилл `olist_order_items`, пишет запрос и
+показывает его вместе с ответом.
+
+![Топ-3 категорий Olist по числу проданных товаров](../../docs/assets/analyst-olist-top-categories.png)
+
 ## Как устроено
 
 | Файл | Что там |
