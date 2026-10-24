@@ -48,6 +48,18 @@ make install           # ядро, плагины и личный ассисте
 make tui               # чат в терминале
 ```
 
+Проект собран и проверен на модели GigaChat-3-Ultra. Сам GigaChat не принимает
+запросы в формате OpenAI, поэтому между базой и моделью стоит прокси
+[gpt2giga](https://github.com/ai-forever/gpt2giga): он принимает Chat Completions и
+переводит их в вызовы GigaChat. Прокси запущен на хосте, база ходит к нему через
+`host.docker.internal`. С этими настройками в `.env` сняты скриншоты ниже:
+
+```bash
+LLM_BASE_URL=http://host.docker.internal:8090/v2
+LLM_MODEL=GigaChat-3-Ultra
+LLM_TOOL_EXAMPLES_FIELD=few_shot_examples   # GigaChat берёт примеры вызовов инструментов из этого поля
+```
+
 Так выглядит разговор с личным ассистентом в TUI. Рецепт он берёт из MCP-сервера
 ВкусВилла, потом ищет каждый ингредиент и собирает корзину по ссылке.
 
