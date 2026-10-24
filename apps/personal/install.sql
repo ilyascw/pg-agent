@@ -1,4 +1,4 @@
--- Installs the personal assistant on top of the core.
+-- Installs the personal assistant and the plugins it uses on top of the core.
 --
 -- psql variables: base_url, api_key, model, tool_examples_field (empty to skip).
 -- Paths of prompt and skill files are relative to the repository root.
@@ -11,6 +11,11 @@
 \set skill_skill_authoring `cat apps/personal/skills/skill_authoring.md`
 
 begin;
+
+\ir ../../plugins/builtin/install.sql
+\ir ../../plugins/llm_openai/install.sql
+\ir ../../plugins/mcp/install.sql
+\ir ../../plugins/sessions/install.sql
 
 \ir schema.sql
 \ir tools/basic.sql

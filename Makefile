@@ -15,11 +15,11 @@ up:
 down:
 	docker compose down
 
-# Creates the core and the personal assistant in the "agent" database. Endpoint
+# Creates the core and the personal assistant with its plugins in the "agent" database. Endpoint
 # settings come from .env. Fails if it is already installed: use reset.
 install:
 	@test -n "$$LLM_BASE_URL" -a -n "$$LLM_MODEL" || { echo "Set LLM_BASE_URL and LLM_MODEL in .env"; exit 1; }
-	$(PSQL) -d agent -f sql/install.sql
+	$(PSQL) -d agent -f core/install.sql
 	$(PSQL) -d agent $(APP_VARS) -f apps/personal/install.sql
 	$(MAKE) mcp
 
@@ -35,18 +35,22 @@ reset:
 test:
 	$(PSQL) -d postgres -c "drop database if exists agent_test" -c "create database agent_test"
 	$(PSQL) -d agent_test -c "create extension pgtap" -c "create extension plpgsql_check"
-	$(PSQL) -d agent_test -f sql/install.sql -f tests/fixtures.sql
+	$(PSQL) -d agent_test -f core/install.sql -f plugins/llm_fake/install.sql -f core/tests/fixtures.sql
 	$(PSQL) -d agent_test -v base_url=http://llm.invalid -v api_key=0 -v model=test \
 		-v tool_examples_field= -f apps/personal/install.sql
-	docker compose exec -T db pg_prove -U agent -d agent_test tests/*_test.sql apps/*/tests/*_test.sql
+	docker compose exec -T db pg_prove -U agent -d agent_test \
+		core/tests/*_test.sql plugins/*/tests/*_test.sql apps/*/tests/*_test.sql
+	cd clients/python && uv run pytest -q
 	cd connectors/tui && uv run pytest -q
 
 lint:
-	$(SQLFLUFF) lint sql tests apps
+	$(SQLFLUFF) lint core plugins apps
+	cd clients/python && uv run ruff check . && uv run ruff format --check .
 	cd connectors/tui && uv run ruff check . && uv run ruff format --check .
 
 fmt:
-	-$(SQLFLUFF) fix sql tests apps
+	-$(SQLFLUFF) fix core plugins apps
+	cd clients/python && uv run ruff check --fix . && uv run ruff format .
 	cd connectors/tui && uv run ruff check --fix . && uv run ruff format .
 
 tui:

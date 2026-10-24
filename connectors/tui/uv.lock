@@ -77,13 +77,35 @@ wheels = [
 ]
 
 [[package]]
+name = "pg-agent"
+version = "0.1.0"
+source = { editable = "../../clients/python" }
+dependencies = [
+    { name = "psycopg", extra = ["binary"] },
+    { name = "tzlocal" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.3.6" },
+    { name = "tzlocal", specifier = ">=5.4.5" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest-asyncio", specifier = ">=1.4.0" },
+    { name = "ruff", specifier = ">=0.17.2" },
+]
+
+[[package]]
 name = "pg-agent-tui"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "pg-agent" },
     { name = "psycopg", extra = ["binary"] },
     { name = "textual" },
-    { name = "tzlocal" },
 ]
 
 [package.dev-dependencies]
@@ -95,9 +117,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pg-agent", editable = "../../clients/python" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.6" },
     { name = "textual", specifier = ">=8.2.8" },
-    { name = "tzlocal", specifier = ">=5.4.5" },
 ]
 
 [package.metadata.requires-dev]

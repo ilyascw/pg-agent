@@ -1,0 +1,33 @@
+[project]
+name = "pg-agent"
+version = "0.1.0"
+description = "Python client for the pg-agent connector contract"
+readme = "README.md"
+authors = [
+    { name = "Ilya Skvortsov", email = "mail.ilyascw@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "psycopg[binary]>=3.3.6",
+    "tzlocal>=5.4.5",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.2",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

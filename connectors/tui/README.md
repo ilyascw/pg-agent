@@ -2,9 +2,7 @@
 
 Терминальный чат с агентом из pg-agent.
 
-- `src/pg_agent` — клиент к контракту ядра (`runtime.open`, `runtime.run`, `LISTEN
-  agent_events`, `core.streams`). UI в нём нет, его используют и другие коннекторы.
-- `src/pg_agent_tui` — интерфейс на Textual поверх клиента.
+Интерфейс на Textual поверх клиента из `clients/python`.
 
 ```bash
 uv run pg-agent-tui

@@ -8,9 +8,9 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "pg-agent",
     "psycopg[binary]>=3.3.6",
     "textual>=8.2.8",
-    "tzlocal>=5.4.5",
 ]
 
 [project.scripts]
@@ -27,8 +27,8 @@ dev = [
     "ruff>=0.17.2",
 ]
 
-[tool.uv.build-backend]
-module-name = ["pg_agent", "pg_agent_tui"]
+[tool.uv.sources]
+pg-agent = { path = "../../clients/python", editable = true }
 
 [tool.ruff]
 line-length = 100
