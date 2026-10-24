@@ -23,7 +23,7 @@ call runtime.run(:stream, 'какой курс доллара?', null);
 - **Стриминг без брокера.** Каждое событие отправляет `NOTIFY`, интерфейс слушает
   `LISTEN agent_events`.
 - **Любой клиент.** Подключиться можно из чего угодно, что умеет говорить с Postgres:
-  TUI, бот или `psql`.
+  TUI, Telegram-бот или `psql`.
 
 Слои устроены как в AG2: адаптер модели, цикл, инструменты, сборка контекста и
 middleware отделены друг от друга узкими контрактами. Модель — любой
@@ -38,6 +38,7 @@ OpenAI-compatible эндпоинт Chat Completions.
 | `apps/personal/` | личный ассистент: задачи, заметки, скиллы, погода, курс валют, калькулятор |
 | `clients/python/` | Python-клиент к контракту коннекторов |
 | `connectors/tui/` | терминальный чат (Textual) поверх клиента |
+| `connectors/telegram/` | Telegram-бот поверх клиента |
 
 Тесты лежат рядом с кодом, в `tests/` каждого каталога. Каждый плагин — папка с
 `install.sql`; приложение подключает плагины из своего `install.sql`.
@@ -112,6 +113,7 @@ cp .env.example .env   # указать LLM_BASE_URL и LLM_MODEL
 make up       # Postgres 17 + http, plpgsql_check, pgTAP
 make install  # ядро, плагины и личный ассистент в базе agent (make reset — снести и поставить заново)
 make tui      # чат
+make telegram # Telegram-бот (нужны TELEGRAM_BOT_TOKEN и TELEGRAM_ALLOWED_USERS)
 make test     # pgTAP на чистой базе agent_test, затем тесты клиента и коннектора
 make lint     # sqlfluff и ruff
 make fmt      # их автоисправления

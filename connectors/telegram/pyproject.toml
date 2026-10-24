@@ -1,0 +1,43 @@
+[project]
+name = "pg-agent-telegram"
+version = "0.1.0"
+description = "Telegram bot connector for pg-agent"
+readme = "README.md"
+authors = [
+    { name = "Ilya Skvortsov", email = "mail.ilyascw@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "aiogram>=3.31.0",
+    "pg-agent",
+    "psycopg[binary]>=3.3.6",
+    "telegramify-markdown==1.4.0",
+]
+
+[project.scripts]
+pg-agent-telegram = "pg_agent_telegram:main"
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.2",
+]
+
+[tool.uv.sources]
+pg-agent = { path = "../../clients/python", editable = true }
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# The bot text is Russian and uses typographic symbols on purpose.
+ignore = ["RUF001"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
