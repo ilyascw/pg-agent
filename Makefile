@@ -7,7 +7,7 @@ SCHEMAS := telegram analyst olist f1 personal skills mcp runtime mw ctx tools ll
 APP_VARS = -v base_url="$$LLM_BASE_URL" -v api_key="$$LLM_API_KEY" -v model="$$LLM_MODEL" \
 	-v tool_examples_field="$$LLM_TOOL_EXAMPLES_FIELD"
 
-.PHONY: up down install mcp reset test lint fmt tui telegram
+.PHONY: up down install mcp analyst data reset test lint fmt tui telegram
 
 up:
 	docker compose up -d --build --wait
@@ -27,6 +27,25 @@ install:
 mcp:
 	$(PSQL) -d agent -f apps/personal/mcp.sql
 
+# Downloads the analyst datasets from Kaggle into data/ (public, no login needed).
+data: data/olist data/f1
+
+data/olist:
+	mkdir -p $@ && curl -fsSL -o $@/data.zip \
+		https://www.kaggle.com/api/v1/datasets/download/olistbr/brazilian-ecommerce \
+		&& unzip -oq $@/data.zip -d $@ && rm $@/data.zip
+
+data/f1:
+	mkdir -p $@ && curl -fsSL -o $@/data.zip \
+		https://www.kaggle.com/api/v1/datasets/download/rohanrao/formula-1-world-championship-1950-2020 \
+		&& unzip -oq $@/data.zip -d $@ && rm $@/data.zip
+
+# Installs the text-to-SQL analyst with its datasets into the "agent" database.
+analyst: data
+	$(PSQL) -d agent $(APP_VARS) -f apps/analyst/install.sql
+	$(PSQL) -d agent -f apps/analyst/datasets/olist/install.sql
+	$(PSQL) -d agent -f apps/analyst/datasets/f1/install.sql
+
 # Drops every core schema with its data and installs it again.
 reset:
 	$(PSQL) -d agent -c "drop schema if exists $(shell echo $(SCHEMAS) | sed 's/ /, /g') cascade"
@@ -38,6 +57,8 @@ test:
 	$(PSQL) -d agent_test -f core/install.sql -f plugins/llm_fake/install.sql -f core/tests/fixtures.sql
 	$(PSQL) -d agent_test -v base_url=http://llm.invalid -v api_key=0 -v model=test \
 		-v tool_examples_field= -f apps/personal/install.sql
+	$(PSQL) -d agent_test -v base_url=http://llm.invalid -v api_key=0 -v model=test \
+		-v tool_examples_field= -f apps/analyst/install.sql
 	$(PSQL) -d agent_test -f connectors/telegram/schema.sql
 	docker compose exec -T db pg_prove -U agent -d agent_test \
 		core/tests/*_test.sql plugins/*/tests/*_test.sql apps/*/tests/*_test.sql

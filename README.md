@@ -36,12 +36,14 @@ OpenAI-compatible эндпоинт Chat Completions.
 | `core/` | ядро: контракты и цикл, без них агент не работает |
 | `plugins/` | реализации контрактов ядра; приложение ставит только нужные |
 | `apps/personal/` | личный ассистент: задачи, заметки, скиллы, погода, курс валют, калькулятор |
+| `apps/analyst/` | text-to-SQL агент над датасетами Olist и Formula 1, знания о таблицах — в скиллах |
 | `clients/python/` | Python-клиент к контракту коннекторов |
 | `connectors/tui/` | терминальный чат (Textual) поверх клиента |
 | `connectors/telegram/` | Telegram-бот поверх клиента |
 
 Тесты лежат рядом с кодом, в `tests/` каждого каталога. Каждый плагин — папка с
-`install.sql`; приложение подключает плагины из своего `install.sql`.
+`install.sql`; приложение подключает плагины из своего `install.sql`, повторное
+подключение ничего не делает.
 
 ## Ядро
 
@@ -75,6 +77,7 @@ core.history ─► ctx.assemble ─► mw before_llm ─► llm.complete ─►
 | `builtin` | политики `ctx.last_turns`, `ctx.append_system`; middleware `mw.loop_guard` (защита от зацикливания из `PolicyTransport`) и `mw.drop_empty_arguments` (убирает пустые строки, которыми некоторые модели заполняют необязательные аргументы) |
 | `mcp` | MCP-клиент поверх Streamable HTTP: импортирует инструменты сервера в реестр |
 | `sessions` | инструменты `list_sessions`, `read_session`: агент читает прошлые диалоги |
+| `skills` | библиотеки скиллов: каталог в промпте, полный текст по запросу, импорт из `.md` |
 
 ## Точки расширения
 
@@ -112,7 +115,8 @@ select core.history(:stream);                     -- весь диалог
 cp .env.example .env   # указать LLM_BASE_URL и LLM_MODEL
 make up       # Postgres 17 + http, plpgsql_check, pgTAP
 make install  # ядро, плагины и личный ассистент в базе agent (make reset — снести и поставить заново)
-make tui      # чат
+make analyst  # text-to-SQL агент с датасетами (скачает их с Kaggle)
+make tui      # чат (PG_AGENT_NAME=analyst — с аналитиком)
 make telegram # Telegram-бот (нужны TELEGRAM_BOT_TOKEN и TELEGRAM_ALLOWED_USERS)
 make test     # pgTAP на чистой базе agent_test, затем тесты клиента и коннектора
 make lint     # sqlfluff и ruff
